@@ -1,42 +1,46 @@
 semantic_models:
   - name: orders
+    defaults:
+      agg_time_dimension: order_date
     model: ref('fct_orders')
 
-    entities:
-      - name: order
+    entities: 
+      - name: order_id
         type: primary
-        expr: order_id
+      - name: customer
+        expr: customer_id
+        type: foreign
 
     dimensions:
-      - name: is_drink_order
-        type: categorical
+      - name: order_date
+        type: time
+        type_params:
+          time_granularity: day
 
-    measures:
+    measures:   
       - name: order_total
-        agg: count_distinct
-        expr: order_id
-      - name: min_order_value
-        agg: min
-        expr: amount
-      - name: order_cost
+        description: The total amount for each order including taxes.
         agg: sum
         expr: amount
+      - name: order_count
+        expr: 1
+        agg: sum
+      - name: customers_with_orders
+        description: Distinct count of customers placing orders
+        agg: count_distinct
+        expr: customer_id
+      - name: order_value_p99 ## The 99th percentile order value
+        expr: amount
+        agg: percentile
+        agg_params:
+          percentile: 0.99
+          use_discrete_percentile: True
+          use_approximate_percentile: False
 
 metrics:
   - name: "order_count"
     label: "order_count"
     description: the number of orders placed
     type: simple
-    type_params:
-      measure: order_toal
-  - name: "order_gross_profit"
-    description: "Gross profit from each order."
-    type: derived
-    label: "order_gross_profit"
-    type_params:
-      expr: revenue - cost
-      metrics:
-      - name: order_total
-        alias: revenue
-      - name: order_cost
-        alias: cost
+    type_params: 
+      measure: order_count 
