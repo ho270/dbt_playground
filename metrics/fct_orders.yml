@@ -1,0 +1,5 @@
+entities:
+  - name: order_id
+    type: primary
+- name: is_drink_order
+  type: categorical
